@@ -6,6 +6,15 @@ Per-release notes live in [`docs/releases/`](releases/); the entries below summa
 
 <!-- Add upcoming changes under Unreleased. -->
 
+## [0.7.39] - 2026-10-10
+
+### Fixed
+
+- Load the native DeepSeek API-key and Account plugins from the terminal bundle, with both importing its patched shared adapter. Harness 0.2 split the adapter library from its plugin entry points; the 0.7.38 bundle incorrectly mounted the library as a plugin, leaving the API-key route unavailable. Preserve existing provider settings row IDs.
+- Require installed-bundle local diagnostics to have no plugin activation failures, and verify both native DeepSeek provider registrations and model resolution before any fixture adapter is introduced. These checks make provider startup part of the release gate without sending model requests.
+
+Version 0.7.38 reached npm and Hub before this fault was found in a fresh public install; its remaining release workflow was cancelled. Upgrade to 0.7.39.
+
 ## [0.7.38] - 2026-10-10
 
 The 0.7.37 candidate was cancelled before publication after its Node 22.19.0 coverage check failed. This release includes that upgrade and the test-fixture fix below.

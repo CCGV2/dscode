@@ -87,6 +87,14 @@ export function apply(ctx) {
 
 async function probe(ctx) {
   await ctx.get('loader').await();
+  // Check the shipped providers before introducing fixture adapters: a working
+  // fixture must not hide a broken provider entry in the installed bundle.
+  const providers = ctx.llm.listProviders().map(row => row.id);
+  for (const provider of ['deepseek-official', 'deepseek-account']) {
+    assert(providers.includes(provider), `Missing native DeepSeek provider: ${provider}`);
+    assert.equal((await ctx.llm.resolveModelInfo(provider, 'deepseek-flash')).id, 'deepseek-flash');
+  }
+  console.log('DEEPSEEK_PROVIDERS_READY');
   const sessionId = `harness-probe-${randomUUID()}`;
   const fixtureFile = join(process.env.DSH_HOME, `${sessionId}.txt`);
   ctx.llm.registerAdapter(['harness-fixture'], new FixtureAdapter(fixtureFile));

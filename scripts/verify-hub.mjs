@@ -80,6 +80,8 @@ try {
     DSCODE_ACP_VERIFY_MODULES: join(nativeHome, 'profiles/dscode/node_modules'),
   })).includes('ACP_PROBE_PASSED'));
   assert((await exec(join(launcherRoot, 'node_modules/@toddzheng024/dscode/cli.mjs'), ['--dump-config'], nativeEnv)).includes('dscode-bootstrap'));
+  const runtimeDoctor = await exec(join(launcherRoot, 'node_modules/@toddzheng024/dscode/cli.mjs'), ['doctor', '--local'], nativeEnv);
+  assert.doesNotMatch(runtimeDoctor, /entry did not activate|entries did not activate|failed to import|invalid plugin/, runtimeDoctor);
   const nativeDoctor = JSON.parse(await exec(join(hub, 'bin.js'), ['profile', 'doctor', '--profile', 'dscode', '--json'], nativeEnv));
   assert.equal(nativeDoctor.healthy, true);
   console.log('PASS native locked Hub install, installed terminal imports, launcher composition and Hub doctor');
@@ -119,6 +121,7 @@ try {
   }
   const result=await exec(installedRuntime,['--profile','dscode','--patch',overlay],{DSH_TUI_PROBE_REPORT:join(home,'probe.json')});
   assert(result.includes('HARNESS_PROBE_PASSED'),result);
+  assert(result.includes('DEEPSEEK_PROVIDERS_READY'),result);
   assert.match(read(join(home,'probe.json')).dscode.childWorktree, /spawn foreground and fork background cwd/);
   console.log('PASS installed bundle agent loop, shell, subagent worktrees, auto review, compaction and telemetry');
   // The child worktree probe creates its own clean Git repository. The card
