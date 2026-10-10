@@ -37,7 +37,7 @@ A user who already has dsh-hub installed can apply directly, but must use pnpm 1
 
 Install the official Harness Desktop application with embedded runtime
 0.2.0-rc.2. In **Plugins → Add plugin**, enter
-`@toddzheng024/dscode-desktop@0.7.37`, review and install, then choose
+`@toddzheng024/dscode-desktop@0.7.38`, review and install, then choose
 **Enable now**. Fully quit and reopen Desktop, enable **Show coding view** and
 **Agent presets**, then create a DSCODE session and choose an existing model.
 The Desktop preview is qualified on macOS Apple Silicon. See
@@ -46,7 +46,7 @@ for archive checksums, migration and removal, and [Plugin Hub](plugin-hub.md)
 for the separation between DSCODE and Hub.
 
 Version 0.7.34 fixes the 0.7.33 activation error “4 entries did not activate”
-when Desktop starts without `DSH_HOME`. Update to the current 0.7.37 package and
+when Desktop starts without `DSH_HOME`. Update to the current 0.7.38 package and
 enable it again; exporting a shell variable is unnecessary. Default Desktop
 state uses `~/.dsh`, as resolved by Harness. Publication now verifies installation
 and the affected components with that default environment.

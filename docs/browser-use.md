@@ -646,7 +646,7 @@ and account settings, browser preview, durable session communication, cross-sess
 memory and opt-in task scheduling together. Ordinary builds remain private;
 the separate [release process](hub-distribution.md#desktop-release-candidate-and-publication)
 qualifies a public candidate for 0.2.0-rc.2. The Desktop preview is published on npm as
-`@toddzheng024/dscode-desktop@0.7.37`. The package does
+`@toddzheng024/dscode-desktop@0.7.38`. The package does
 not yet include all DSCODE Host services. Its experimental
 [native Computer Use adapter](computer-use.md) has passed helper and lifecycle
 checks; window observation, screenshots and input await qualification with

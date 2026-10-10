@@ -26,7 +26,7 @@ sessions. Their installation handoff delegates to the official plugin manager;
 enabling, configuration and removal stay in **Settings → Plugins**.
 
 Installing or reinstalling 0.7.34 will therefore not remove the bundled Hub.
-Update to `@toddzheng024/dscode-desktop@0.7.37` using the [Desktop installation guide](browser-use.md#install-the-experimental-combined-desktop-package).
+Update to `@toddzheng024/dscode-desktop@0.7.38` using the [Desktop installation guide](browser-use.md#install-the-experimental-combined-desktop-package).
 Fully quit and reopen Desktop after updating; an already running Host may keep
 the old plugin modules loaded.
 

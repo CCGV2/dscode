@@ -2,7 +2,7 @@
 
 Status: living verification record. The maintained gates below include installed terminal imports, real-browser checks and experimental upstream Desktop Host, shared Web UI and macOS Electron probes; dated sections retain the evidence and limits of their original runs.
 
-## Terminal Harness 0.2.0-rc.2 upgrade — 2026-10-10 (0.7.37)
+## Terminal Harness 0.2.0-rc.2 upgrade — 2026-10-10 (0.7.38)
 
 The terminal now pins the complete Harness graph to `0.2.0-rc.2`, matching the
 Desktop target. Computer Use moves to `0.3.3`; its compatibility declaration
@@ -48,6 +48,15 @@ Checks performed during the upgrade:
 The test fixtures now isolate app-boot, Goal and subagent providers; Ink patch
 tests operate in memory and the OpenRouter startup timeout uses a controlled
 clock. These checks no longer rely on a previously provisioned developer install.
+The first release candidate exposed an additional Node 22.19.0 coverage-loader
+error: the in-memory Ink module retained a relative source-map reference that
+cannot resolve against its data URL. The candidate was cancelled before
+publication. The fixture now drops that stale map directive; production Ink is
+unchanged, and the original failure was reproduced locally on Node 22.19.0.
+After the fixture fix, all 1,091 unit/component tests and full-inventory coverage
+passed locally on that exact runtime (80.37%). The first candidate's Node 24 and
+Linux CI jobs passed; its publish job never ran. Version 0.7.38 requalifies the
+replacement archives through the release workflow.
 
 Limits: Computer Use `0.3.3` still reads the old tool-result format when restoring
 a previously loaded skill. Reloading the skill restores execution tools; the

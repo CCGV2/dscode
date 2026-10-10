@@ -6,7 +6,9 @@ Per-release notes live in [`docs/releases/`](releases/); the entries below summa
 
 <!-- Add upcoming changes under Unreleased. -->
 
-## [0.7.37] - 2026-10-10
+## [0.7.38] - 2026-10-10
+
+The 0.7.37 candidate was cancelled before publication after its Node 22.19.0 coverage check failed. This release includes that upgrade and the test-fixture fix below.
 
 ### Changed
 
@@ -16,6 +18,7 @@ Per-release notes live in [`docs/releases/`](releases/); the entries below summa
 - Mount the native session controller and its host dependencies so reminders can resolve live and persisted sessions on Harness 0.2. The optional loopback login server also carries authenticated native Connection routes; no browser frontend is mounted.
 - Read `/schedule` from the native reminder catalog instead of historical session events, refresh it while open, and display daily, weekly and cron rules. Storage failures remain visible instead of appearing as an empty list.
 - Pin newly introduced Harness packages, including the shared DeepSeek account service required by clean bundle installations. Isolate patched app-boot, Goal and subagent provider packages in verification runtimes; check Ink patches in memory and use a deterministic clock for the OpenRouter timeout regression.
+- Remove the stale relative source-map directive from the in-memory Ink test fixture, which Node 22.19.0 cannot resolve against a data URL during coverage collection. The shipped Ink runtime is unaffected.
 
 ### Added
 

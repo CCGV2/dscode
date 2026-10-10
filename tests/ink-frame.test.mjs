@@ -5,7 +5,10 @@ import { patchInkLogUpdate } from '../scripts/patch-ink.mjs';
 
 // Patch an in-memory copy: fresh installs and provisioned trees exercise the same ledger.
 const source = patchInkLogUpdate(readFileSync(new URL('../node_modules/ink/build/log-update.js', import.meta.url), 'utf8'))
-  .replace(/from '([^']+)'/g, (_match, name) => `from '${import.meta.resolve(name)}'`);
+  .replace(/from '([^']+)'/g, (_match, name) => `from '${import.meta.resolve(name)}'`)
+  // The patched in-memory module has no matching source map. Node 22.19's
+  // coverage loader throws when it resolves a relative map against a data URL.
+  .replace(/^\/\/# sourceMappingURL=.*$/gm, '');
 const { default: logUpdate } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 
 /**
