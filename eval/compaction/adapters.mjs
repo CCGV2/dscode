@@ -44,7 +44,7 @@ export function deepseekAdapter({ model, contextWindow, apiKey, baseURL = 'https
   const options = resolveAdapterOptions({ baseURL, thinking, models: [{ id: model, contextWindow }], retryPolicy: { mode: 'normal', maxRetries: 0 } });
   return new DeepSeekAdapter({
     options: () => options,
-    resolveApiKey: async () => apiKey,
+    resolveAuth: async () => ({ headers: { Authorization: `Bearer ${apiKey}` } }),
     resolveUserId: () => 'dscode-compaction-eval',
     prepareExtensions: async () => ({ fields: {}, accept: async () => {} }),
   });

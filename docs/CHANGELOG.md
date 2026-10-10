@@ -6,6 +6,21 @@ Per-release notes live in [`docs/releases/`](releases/); the entries below summa
 
 <!-- Add upcoming changes under Unreleased. -->
 
+## [0.7.37] - 2026-10-10
+
+### Changed
+
+- Upgrade the terminal Harness runtime and vendored TUI dependencies from `0.1.7-alpha.2` to `0.2.0-rc.2`, matching the existing Desktop release target. Keep exact runtime pins and patch-version guards; this does not move to the `0.2.1` alpha channel.
+- Update the live DeepSeek compaction evaluator and its regression fixture for header-based authentication.
+- Upgrade Computer Use to `0.3.3`, whose declared compatibility includes the new Harness. Remove the retired Settings shim so the provider receives native live configuration updates. Restoring execution tools after a saved skill load still requires reloading the skill.
+- Mount the native session controller and its host dependencies so reminders can resolve live and persisted sessions on Harness 0.2. The optional loopback login server also carries authenticated native Connection routes; no browser frontend is mounted.
+- Read `/schedule` from the native reminder catalog instead of historical session events, refresh it while open, and display daily, weekly and cron rules. Storage failures remain visible instead of appearing as an empty list.
+- Pin newly introduced Harness packages, including the shared DeepSeek account service required by clean bundle installations. Isolate patched app-boot, Goal and subagent provider packages in verification runtimes; check Ink patches in memory and use a deterministic clock for the OpenRouter timeout regression.
+
+### Added
+
+- Document Atomic Mail as an optional stdio MCP integration with a disabled example entry. Unconfigured or disabled entries add no tools or server instructions to model context; enabling and removing the integration are covered by an offline lifecycle test.
+
 ## [0.7.36] - 2026-10-09
 
 ### Added

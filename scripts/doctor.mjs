@@ -47,5 +47,6 @@ console.log(`Computer Use health: ${JSON.stringify(result.computer)}`);
 console.log('Agent loop used a deterministic local adapter. Not exercised: remote model requests, browser actions, desktop actions, remote-model compaction.');
 console.log(`Report: ${report}`);
 console.log(`Auto review: ${result.autoReview}`);
+console.log(`Native reminders: ${result.schedule}`);
 
 console.log(`DSCODE: ${JSON.stringify(result.dscode)}`);

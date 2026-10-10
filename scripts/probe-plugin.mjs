@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readMetrics } from '../plugins/session-metrics/store.mjs';
 import { summarize } from '../plugins/session-metrics/view.mjs';
 import { probeDscode } from './dscode-probe.mjs';
+import { probeSchedule } from './schedule-probe.mjs';
 import { writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -13,7 +14,7 @@ import { auditStore } from '../plugins/auto-review/audit.mjs';
 import { producerKind } from '../plugins/message-source/kind.mjs';
 
 export const name = 'tui-harness-probe';
-export const inject = ['agents', 'agentPresets', 'tools', 'skills', 'sessions', 'commands', 'computerUse', 'llm', 'permissionPresets'];
+export const inject = ['agents', 'agentPresets', 'tools', 'skills', 'sessions', 'commands', 'computerUse', 'llm', 'permissionPresets', 'schedule'];
 
 // Computer Use drives macOS Accessibility APIs, so the skill, its execution tools and
 // their resume assertion only exist on darwin; the probe records that instead of
@@ -164,7 +165,7 @@ async function probe(ctx) {
   assert(resumed.agent.session.seq >= eventCount, 'Durable session lost events');
   assert(resumed.agent.session.snapshotEvents().some(event => event.type === 'assistant/message' && JSON.stringify(event.data).includes('HARNESS_FIXTURE_COMPLETE')), 'Assistant response did not survive resume');
   // Computer Use restores its execution tools on resume by reading the durable log for the
-  // loaded skill, and `@anionex/dsh-computer-use` 0.3.2 still looks for the pre-0.1.7 shape
+  // loaded skill, and `@anionex/dsh-computer-use` 0.3.3 still looks for the pre-0.1.7 shape
   // (a `tool-result` content block carrying `toolCallId`/`isError`), which session format v4
   // moved onto the message. Live activation is unaffected — the listener reads the execution
   // result — so a resumed session regains the tools as soon as the skill is loaded again, and
@@ -173,7 +174,7 @@ async function probe(ctx) {
   if (MACOS) {
     const resumedTools = ctx.tools.schemas(resumed.agent).map(tool => tool.name);
     assert(resumedTools.includes('computer_use_activate'), 'Computer Use bootstrap tool missing after resume');
-    if (!resumedTools.includes('computer_observe')) console.log('HARNESS_PROBE_NOTE: Computer Use execution tools need the skill loaded again after resume; @anionex/dsh-computer-use 0.3.2 reads the pre-0.1.7 tool-result shape');
+    if (!resumedTools.includes('computer_observe')) console.log('HARNESS_PROBE_NOTE: Computer Use execution tools need the skill loaded again after resume; @anionex/dsh-computer-use 0.3.3 reads the pre-0.1.7 tool-result shape');
   }
   await resumed.dispose();
   ctx.llm.registerAdapter(['harness-denial-fixture'], new FixtureAdapter(fixtureFile));
@@ -206,8 +207,9 @@ async function probe(ctx) {
   assert(ledger.rows.some(r => r.kind === 'end' && r.usage?.inputTokens === 100), 'Reviewer usage missing from session cost ledger');
   assert(summarize(ledger.rows).calls >= 13, 'Main and review calls must each be recorded once');
   const dscode = await probeDscode(ctx);
+  const schedule = await probeSchedule(ctx);
   const report = {
-    dscode,
+    dscode, schedule,
     checkedAt: new Date().toISOString(),
     profileBoot: 'passed', presetActivation: 'passed',
     tuiCommands: 'status-doctor-mcp-skills-hooks passed; native hook denied bash', tools, commands, computerSkillActivation: MACOS ? 'passed' : 'not exercised (macOS-only)',

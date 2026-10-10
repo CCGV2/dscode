@@ -55,6 +55,8 @@ The [demo guide](docs/demo.md) summarizes DSCODE features, outlines a five-minut
 
 ## 🆕 What's new
 
+**0.7.37** — Upgrades the terminal to Harness `0.2.0-rc.2` and Computer Use `0.3.3`, restores native reminder delivery and the `/schedule` catalog, and adds opt-in Atomic Mail MCP setup. Unconfigured or disabled Atomic Mail adds no tools or server instructions to model context. See the [release notes](docs/releases/0.7.37.md).
+
 **0.7.36** — `dscode acp` connects ACP clients to the DSCODE agent preset, configured providers and client tool approvals. Install the npm `latest` launcher and configure your client with command `dscode` and arguments `["acp"]`. See the [ACP guide](docs/acp.md) for inherited protocol limits and the [release notes](docs/releases/0.7.36.md).
 
 **0.7.35** — Removes bundled Hub functionality, scopes Desktop browser tools to DSCODE sessions, and aligns settings and activation guidance with Harness. Existing Desktop models/accounts remain usable; TUI Browser Use is retained. See the [release notes](docs/releases/0.7.35.md).
@@ -120,7 +122,7 @@ The launcher checks installed bundles and Harness dependencies against the recom
 
 An experimental combined Desktop package adds the DSCODE preset, custom-model and account settings, browser preview, durable session communication, cross-session memory and opt-in scheduling to the official application. **Settings → DSCODE → Schedules** manages tasks and enables delivery while Desktop stays open. Build and local installation instructions are in [Browser use](docs/browser-use.md#install-the-experimental-combined-desktop-package). Native installation, upgrade, removal and reinstallation with scheduling enabled, plus rendered account and scheduling controls, were checked on macOS Desktop 0.2.0-rc.2; qualification limits are covered in [Triggers](docs/triggers.md#experimental-desktop-scheduling). The package also includes an experimental [native Computer Use adapter](docs/computer-use.md); window observation and input still await qualification with macOS Accessibility permission. Durable [time context](docs/session-communication.md#time-context-for-delayed-work) gives DSCODE agents arrival times, relay waits and previous turn endings while keeping ordinary chat clear. Namespaced [Desktop diagnostics](docs/tui-commands.md#experimental-desktop-diagnostics) inspect the selected session, skills and Host MCP entries; matching user guides ship with the package. The [Desktop email inbox](docs/email.md#experimental-desktop-inbox) previews shared local mail, connects IMAP or Gmail OAuth, and adds a selected message to a DSCODE session. Background sync is opt-in; outgoing mail keeps the existing approval and receipt rules. The [Session usage sidebar](docs/session-metrics.md#experimental-desktop-usage) shows DSCODE cost, context, cache, request speed and per-turn estimates. The [Delegation board sidebar](docs/tui-commands.md#experimental-desktop-delegation-board) follows the selected main session’s tasks, dependencies, worktrees and verification evidence. The Desktop plugin is distributed separately from the terminal packages; terminal popups and terminal-only commands keep their existing UI.
 
-The Desktop plugin uses the package name `@toddzheng024/dscode-desktop`. Version 0.7.35 removes bundled [Plugin Hub](docs/plugin-hub.md) UI, discovery tools and runtime dependencies; DSCODE remains listed in the Hub catalog. It targets Harness runtime 0.2.0-rc.2. In official **Plugins → Add plugin**, enter `@toddzheng024/dscode-desktop@0.7.36`, install, then choose **Enable now**. Fully quit and reopen Desktop after updating. Both `preview` and the default `latest` channel receive this verified preview release.
+The Desktop plugin uses the package name `@toddzheng024/dscode-desktop`. Version 0.7.35 removes bundled [Plugin Hub](docs/plugin-hub.md) UI, discovery tools and runtime dependencies; DSCODE remains listed in the Hub catalog. It targets Harness runtime 0.2.0-rc.2. In official **Plugins → Add plugin**, enter `@toddzheng024/dscode-desktop@0.7.37`, install, then choose **Enable now**. Fully quit and reopen Desktop after updating. Both `preview` and the default `latest` channel receive this verified preview release.
 
 **Settings → DSCODE** groups setup, Models, Accounts and Schedules at the same level; **Plugins → DSCODE · Community** opens the same page. DSCODE browser tools are scoped to DSCODE sessions. Existing Desktop models/accounts work through the normal picker; optional provider settings use the native credential store. Enable **Show coding view** and **Agent presets**, then choose DSCODE for a new session after fully restarting.
 
@@ -238,7 +240,7 @@ npm run dist                # build the fallback tar installer
 | `@toddzheng024/dscode-bundle` | Base layer, Computer Use, custom plugins and the modified TUI/runtime |
 | Hub profile `dscode` | Pinned bundle and runtime versions with integrity hashes |
 
-The bundle generates its modified modules at build time and never rewrites third-party sources on a user's machine. DSH dependencies are pinned to `0.1.7-alpha.2`; the TUI is based on `dsh-code@1.2.0` and Computer Use on `0.3.2`. The full pipeline—bundle, then Hub release, then launcher—is in the [distribution guide](docs/hub-distribution.md). Context-compaction evaluation lives under [`eval/`](eval/README.md) and runs with `npm run eval:compaction`.
+The bundle generates its modified modules at build time and never rewrites third-party sources on a user's machine. DSH dependencies are pinned to `0.2.0-rc.2`; the TUI is based on `dsh-code@1.2.0` and Computer Use on `0.3.3`. The full pipeline—bundle, then Hub release, then launcher—is in the [distribution guide](docs/hub-distribution.md). Context-compaction evaluation lives under [`eval/`](eval/README.md) and runs with `npm run eval:compaction`.
 
 ## 📚 Documentation
 
@@ -260,7 +262,7 @@ The bundle generates its modified modules at build time and never rewrites third
 | [OpenCode Go](docs/opencode-go.md) | Running a session on an OpenCode Go subscription: the account login, footer usage, the models and their reasoning efforts, what is not supported yet |
 | [Custom model providers](docs/custom-providers.md) | Connect self-hosted and private APIs: protocols, model discovery, context windows, credentials and tool-call testing |
 | [Auto review](docs/auto-review.md) | Scope, cost and limits of independent permission review |
-| [Email](docs/email.md) | IMAP setup, the inbox panel, `send_email` and aliases |
+| [Email](docs/email.md) | IMAP setup, the inbox panel, `send_email`, aliases and opt-in Atomic Mail MCP (no context loaded until enabled) |
 | [Skills and workspace instructions](docs/skills.md) | Discovery scopes, the ancestor mode and instruction files |
 | [TUI commands](docs/tui-commands.md) | Command reference and hooks |
 | [Session metrics](docs/session-metrics.md) | Definition of the footer TPS, context, cost and cache figures |

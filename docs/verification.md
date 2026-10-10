@@ -2,6 +2,60 @@
 
 Status: living verification record. The maintained gates below include installed terminal imports, real-browser checks and experimental upstream Desktop Host, shared Web UI and macOS Electron probes; dated sections retain the evidence and limits of their original runs.
 
+## Terminal Harness 0.2.0-rc.2 upgrade — 2026-10-10 (0.7.37)
+
+The terminal now pins the complete Harness graph to `0.2.0-rc.2`, matching the
+Desktop target. Computer Use moves to `0.3.3`; its compatibility declaration
+accepts this Harness and its native configuration support replaces the old
+Settings shim. The existing runtime patches remain guarded by the exact version.
+
+The native scheduler now requires `sessionController`. The terminal mounts that
+controller, Workspace, Connection and file-upload host services. Connection uses
+the optional loopback login server for authenticated routes; it adds no browser
+frontend, and the host services also work without an HTTP listener.
+The `/schedule` panel reads the native active catalog on open and once per second
+while visible. It reflects delivery, deletion and updates independently of the
+legacy session-log projection, including daily, weekly and cron rules.
+
+Checks performed during the upgrade:
+
+- A clean `npm ci --ignore-scripts` followed by `npm run check` passed lint,
+  both TypeScript checks, 1,091 unit/component tests, native integration and
+  package checks, and 63 evaluation tests. Measured first-party `.mjs` line
+  coverage was 80.37%; the vendored TypeScript terminal is outside that metric.
+- A real macOS Host doctor passed standard and DSCODE preset activation,
+  persistent shell, foreground spawn and background fork worktree isolation,
+  approval and denial handling, compaction, and nonempty session resume.
+- The native reminder probe delivered to both a live Agent and a disposed,
+  persisted session resumed by the new controller, using only a local adapter.
+  A final isolated doctor also passed with `DSCODE_ACCOUNT_LOGIN=0`, exercising
+  the same native controller without the optional HTTP login listener.
+- Computer Use helper `0.3.3` initialized with its integrity check and health
+  handshake. Accessibility and screen-recording permissions were available.
+- The real Chrome suite passed navigation, permissions, handoff, attached-browser
+  preservation, document previews, large images, and native runtime activation.
+- The DeepSeek compaction evaluation adapter now uses header-based authentication;
+  its captured SSE regression passes without an external model request.
+- Mounted terminal tests cover current reminder rows, removal after the catalog
+  changes, visible read failures and recovery, plus calendar-rule labels.
+- The Linux arm64 end-to-end suite passed all seven stages on Node 22.23.3:
+  source provisioning, unit tests, native integration, package integrity, bundle
+  and local Hub metadata generation, then native locked install and installed
+  Agent probes. A failed upgrade retained the old profile; a fixture upgrade to
+  `0.7.37-test` and rollback retained state and restored a runnable `0.7.36` profile.
+  These were local fixture releases; no package or Hub release was published.
+
+The test fixtures now isolate app-boot, Goal and subagent providers; Ink patch
+tests operate in memory and the OpenRouter startup timeout uses a controlled
+clock. These checks no longer rely on a previously provisioned developer install.
+
+Limits: Computer Use `0.3.3` still reads the old tool-result format when restoring
+a previously loaded skill. Reloading the skill restores execution tools; the
+bootstrap tool remains available. This upgrade does not claim interactive
+desktop actions, real provider inference, live OAuth login, or real mail delivery.
+Atomic Mail remains absent from the model prompt and tool list unless its MCP
+row is explicitly enabled; offline native MCP tests cover activation and removal.
+
 ## Desktop boundaries and UI cleanup — 2026-10-08 (unreleased)
 
 The source checkout removes bundled Hub functionality, scopes browser tools,

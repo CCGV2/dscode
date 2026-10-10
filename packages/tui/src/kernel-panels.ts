@@ -1255,9 +1255,8 @@ export function SubagentPanel({ current, load, pick, inherit, close }: {
 }
 
 /**
- * The /schedule panel: the read-only catalog of active reminders folded from
- * durable schedule/change events (the web ui-schedule contract: overdue
- * first, then ascending target; the model creates and cancels through its
+ * The /schedule panel reads the current native catalog of active reminders
+ * (overdue first, then ascending target; the model creates and cancels through its
  * schedule_* tools, the panel only shows state). A local second-hand keeps
  * the relative labels live while the panel is open.
  */
@@ -1269,6 +1268,7 @@ export interface ScheduleDisplayRow {
 
 /** Human frequency label: one-shot kinds read as Once, every rows carry the interval. */
 export function scheduleFrequency(row: ScheduleRow): string {
+  if (row.rule !== undefined) return row.rule
   if (row.kind !== 'every') return 'Once'
   const seconds = row.everySeconds ?? 0
   if (seconds >= 3600 && seconds % 3600 === 0) return `Every ${seconds / 3600}h`
@@ -1299,20 +1299,42 @@ export function scheduleDisplayRows(rows: readonly ScheduleRow[], now: number): 
     }))
 }
 
-export function SchedulePanel({ rows, close }: { rows: () => readonly ScheduleRow[]; close: () => void }): ReactElement {
+export function SchedulePanel({ loadRows, close }: { loadRows: () => Promise<readonly ScheduleRow[]>; close: () => void }): ReactElement {
   const [, setTick] = useState(0)
+  const [rows, setRows] = useState<readonly ScheduleRow[]>([])
+  const [error, setError] = useState<string>()
+  const [loading, setLoading] = useState(true)
+  const loader = useRef(loadRows)
+  loader.current = loadRows
   useEffect(() => {
-    const id = setInterval(() => setTick(value => value + 1), 1_000)
-    return () => clearInterval(id)
+    let cancelled = false
+    let pending = false
+    const refresh = async (): Promise<void> => {
+      if (pending) return
+      pending = true
+      try {
+        const next = await loader.current()
+        if (!cancelled) { setRows(next); setError(undefined) }
+      } catch (cause) {
+        if (!cancelled) setError(cause instanceof Error ? cause.message : String(cause))
+      } finally {
+        pending = false
+        if (!cancelled) setLoading(false)
+      }
+    }
+    void refresh()
+    const id = setInterval(() => { setTick(value => value + 1); void refresh() }, 1_000)
+    return () => { cancelled = true; clearInterval(id) }
   }, [])
-  const display = scheduleDisplayRows(rows(), Date.now())
+  const display = scheduleDisplayRows(rows, Date.now())
+  const status = error ?? (loading ? t('panel.loading') : undefined)
   const stdout = useStdout().stdout
   const viewport = panelViewport(stdout?.columns ?? 80, stdout?.rows ?? 30)
   useInput((input, key) => {
     if (key.escape || input === 'q') return close()
   })
   if (viewport.maxHeight === 0 || viewport.compact) {
-    const summary = display.length === 0 ? t('panel.schedule.none') : singleLineText(display[0].text)
+    const summary = status ?? (display.length === 0 ? t('panel.schedule.none') : singleLineText(display[0].text))
     return createElement(Text, { wrap: 'truncate-end' }, truncateColumns(`/schedule · ${summary}`, viewport.contentColumns))
   }
   const budget = Math.max(1, viewport.bodyRows)
@@ -1323,7 +1345,9 @@ export function SchedulePanel({ rows, close }: { rows: () => readonly ScheduleRo
     Box,
     { width: viewport.outerColumns, borderStyle: 'round', borderColor: inkColor(accent.border), flexDirection: 'column', paddingX: 1 },
     createElement(Text, { color: inkColor(accent.title), wrap: 'truncate-end' }, truncateColumns(display.length === 1 ? t('schedule.title', { count: display.length }) : t('schedule.titlePlural', { count: display.length }), viewport.contentColumns)),
-    ...(display.length === 0
+    ...(status !== undefined
+      ? [createElement(Text, { color: error ? inkColor(getPalette().error) : undefined }, truncateColumns(status, viewport.contentColumns))]
+      : display.length === 0
       ? [createElement(Text, { dimColor: true, wrap: 'truncate-end' }, truncateColumns(`  ${t('schedule.empty')}`, viewport.contentColumns))]
       : visible.map(row => createElement(Text, {
         key: row.key,

@@ -1,12 +1,12 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert/strict';
-import { apply } from '@deepseek-ai/dsh-command-goal';
+import { pathToFileURL } from 'node:url';
+import { createTestRuntime } from '../scripts/test-runtime.mjs';
 
-// `/goal[20]` is a DSCODE runtime patch (scripts/patch-runtime.mjs) on the
-// upstream human-facing goal command, applied by `npm run setup`/launch. These
-// tests drive the REAL command handler against a fake goal service, so they pin
-// the shorthand's behavior rather than the patch's text. Run provisioning first:
-// on an unpatched tree the bracket forms fail loudly, which is the point.
+// Exercise the patched command in an isolated runtime, including on a fresh npm ci.
+const fixture = createTestRuntime({ runtime: true });
+after(fixture.close);
+const { apply } = await import(pathToFileURL(`${fixture.root}/node_modules/@deepseek-ai/dsh-command-goal/lib/index.js`));
 
 /** A fake goal service recording every mutation the command issues. */
 function harness(initial) {

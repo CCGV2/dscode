@@ -3,11 +3,11 @@ import { join, resolve } from 'node:path';
 import { tmpdir, homedir } from 'node:os';
 import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { patchRuntime } from './patch-runtime.mjs';
+import { patchRuntime, patchAppBootPackage } from './patch-runtime.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
-export const upstreamPackages = ['dsh-code', ...['dsh-tool-subagent', 'dsh-subagent', 'dsh-subagent-in-process-driver', 'dsh-llm-deepseek', 'dsh-tool-bash', 'dsh-tool-bash-persistent', 'dsh-terminal-bash', 'dsh-compaction-basic'].map(name => '@deepseek-ai/' + name)];
+export const upstreamPackages = ['dsh-code', ...['dsh-tool-subagent', 'dsh-subagent', 'dsh-subagent-in-process-driver', 'dsh-subagent-spawn-in-process', 'dsh-subagent-fork-in-process', 'dsh-llm-deepseek', 'dsh-tool-bash', 'dsh-tool-bash-persistent', 'dsh-terminal-bash', 'dsh-compaction-basic', 'dsh-command-goal', 'dsh-app-boot'].map(name => '@deepseek-ai/' + name)];
 // The macOS process inspector is patched inside a content-hashed runner chunk
 // rather than lib/index.js, so fixtures need it without joining the index-only list.
 export const fixturePackages = [...upstreamPackages, '@deepseek-ai/dsh-subprocess-local'];
@@ -93,7 +93,10 @@ export function createTestRuntime({ tui = false, runtime = false, patched = true
     }
     symlinkSync(join(root, 'plugins'), join(directory, 'plugins'), 'dir');
     if (patched && tui) applyTerminalSource(directory);
-    if (patched && runtime) patchRuntime(directory);
+    if (patched && runtime) {
+      patchRuntime(directory);
+      patchAppBootPackage(directory);
+    }
     return { root: directory, close: () => rmSync(directory, { recursive: true, force: true }) };
   } catch (error) { rmSync(directory, { recursive: true, force: true }); throw error; }
 }

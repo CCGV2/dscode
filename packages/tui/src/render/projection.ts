@@ -456,10 +456,11 @@ export interface TranscriptStats {
   reasoningEffort: string
 }
 
-/** One active reminder folded from durable `schedule/change` events. */
+/** Display shape shared by the native catalog and historical schedule events. */
 export interface ScheduleRow {
   readonly id: string
-  readonly kind: 'after' | 'at' | 'every'
+  readonly kind: 'after' | 'at' | 'every' | 'daily' | 'weekly' | 'cron'
+  readonly rule?: string
   readonly prompt: string
   /** Next due time (epoch ms); the /schedule panel derives overdue/relative labels. */
   readonly targetAt: number

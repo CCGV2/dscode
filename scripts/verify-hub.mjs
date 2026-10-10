@@ -93,7 +93,7 @@ try {
     assert.equal(read(join(profile,'node_modules/@deepseek-ai',name,'package.json')).version,release.dsh,name);
   }
   mkdirSync(join(profile,'probe'));
-  for(const file of ['probe-plugin.mjs','dscode-probe.mjs','session-messaging-probe.mjs','session-cards-probe.mjs','memory-probe.mjs','browser-probe.mjs']) {
+  for(const file of ['probe-plugin.mjs','dscode-probe.mjs','schedule-probe.mjs','session-messaging-probe.mjs','session-cards-probe.mjs','memory-probe.mjs','browser-probe.mjs']) {
     writeFileSync(join(profile,'probe',file),readFileSync(join(root,'scripts',file),'utf8').replaceAll("'../plugins/",`'../node_modules/${pkg.name}/plugins/`));
   }
   cpSync(join(root,'scripts/hook-fixture.mjs'),join(home,'hook-fixture.mjs'));

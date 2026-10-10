@@ -101,9 +101,9 @@
 - insert:
     # The account login's browser callback: `deepseekAccount` registers /oauth/callback on
     # `ctx.webServer` for the lifetime of one attempt, so the terminal needs an HTTP
-    # transport of its own. Loopback only and an OS-assigned port, and no route exists
-    # until a login runs — the provider's route is the only one this profile registers,
-    # because the Web shell's frontend and API rows stay in the web-app bundle.
+    # transport of its own. Loopback only and an OS-assigned port. The native
+    # session controller below also registers authenticated Connection routes;
+    # no browser frontend is mounted.
     # `DSCODE_ACCOUNT_LOGIN=0` removes the listener, and `/account` then says why.
     - id: webserver
       name: '@deepseek-ai/dsh-host-webserver'
@@ -178,9 +178,23 @@
     - id: tool-session-query
       name: '@deepseek-ai/dsh-tool-session-query'
 
-    # Durable reminders: the schedule service arms per-root timers, injects
-    # due prompts as plugin-source user messages, and writes schedule/change
-    # events the projection folds into the /schedule panel. time-context
+    # DSH 0.2 resolves both live and persisted reminder targets through the
+    # native session controller. Its host dependencies do not mount a browser
+    # frontend; Connection also works without the optional login webserver.
+    - id: workspace
+      name: '@deepseek-ai/dsh-workspace'
+    - id: connection
+      name: '@deepseek-ai/dsh-client-connection'
+    - id: file-upload
+      name: '@deepseek-ai/dsh-client-file-upload'
+    - id: session-controller
+      name: '@deepseek-ai/dsh-api-session-controller'
+      config:
+        nativeOpen: false
+
+    # Durable reminders: the schedule service arms Host timers and resumes
+    # sessions for delivery. /schedule reads the active native catalog;
+    # old schedule/change events are historical migration inputs. time-context
     # gives the model a clock reading so 'at' times are phrased against the
     # actual time; the 30s throttle bounds durable snapshot growth.
     - id: schedule

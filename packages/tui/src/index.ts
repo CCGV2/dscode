@@ -21,6 +21,8 @@ import z from '@deepseek-ai/schemastery'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
 import type { Agent, AgentHandle, AgentStatus, Inbox, ModelSelection, ModelSelectionRef } from '@deepseek-ai/dsh-agent'
 import type {} from '@deepseek-ai/dsh-agent-default-model'
+import type {} from '@deepseek-ai/dsh-schedule'
+import { scheduleRows } from './schedules.ts'
 import type {} from '@deepseek-ai/dsh-attachment'
 import { createUserMessage, MessageId, type ContentBlock } from '@deepseek-ai/dsh-llm'
 import type { JobView } from '@deepseek-ai/dsh-jobs'
@@ -2400,6 +2402,12 @@ async function run(ctx: Context, startup: TuiStartup, io: TuiIo): Promise<void> 
       probeUpdate: () => probeLauncherUpdate(),
       applyUpdate: (onLine, plan) => applyLauncherUpdate(onLine, undefined, plan),
       loadJobs: () => listJobs(ctx, active?.agent),
+      loadSchedules: async () => {
+        if (session === undefined) return []
+        const schedule = ctx.get('schedule')
+        if (schedule === undefined) throw new Error('Reminders are not available in this composition')
+        return scheduleRows(await schedule.list({ sessionId: session.id }))
+      },
       statusline: statuslineItems,
       saveStatusline,
       applyEditorKeys,

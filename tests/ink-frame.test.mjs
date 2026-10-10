@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-// Relative import on purpose: ink does not export this build file, and the ledger under test
-// is the patched one (patchInkFrame, applied by harness provision).
-import logUpdate from '../node_modules/ink/build/log-update.js';
+import { readFileSync } from 'node:fs';
+import { patchInkLogUpdate } from '../scripts/patch-ink.mjs';
+
+// Patch an in-memory copy: fresh installs and provisioned trees exercise the same ledger.
+const source = patchInkLogUpdate(readFileSync(new URL('../node_modules/ink/build/log-update.js', import.meta.url), 'utf8'))
+  .replace(/from '([^']+)'/g, (_match, name) => `from '${import.meta.resolve(name)}'`);
+const { default: logUpdate } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
 
 /**
  * The composer sits at the bottom of Ink's dynamic frame, so "the composer never rides up"

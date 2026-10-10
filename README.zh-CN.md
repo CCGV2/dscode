@@ -55,6 +55,8 @@ DSCODE 是基于 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harn
 
 ## 🆕 最新变化
 
+**0.7.37** — 终端升级到 Harness `0.2.0-rc.2` 和 Computer Use `0.3.3`，适配原生提醒投递与 `/schedule` 列表，并提供可选的 Atomic Mail MCP 配置。未配置或禁用时，不向模型上下文加入 Atomic Mail 工具和服务器指令。详见[发布说明](docs/releases/0.7.37.md)。
+
 **0.7.36** — `dscode acp` 让 ACP 客户端使用 DSCODE agent preset、已配置的模型服务和客户端工具审批。安装 npm `latest` 启动器后，将客户端命令配置为 `dscode`，参数为 `["acp"]`。协议支持范围见 [ACP 指南](docs/acp.md)，详见[发布说明](docs/releases/0.7.36.md)。
 
 **0.7.35** — 移除 Hub 捆绑，将桌面浏览器工具限定于 DSCODE 会话，并统一设置页与启用指引的 Harness 风格。已有桌面模型和账户可继续使用，TUI Browser Use 保留。详见[发布说明](docs/releases/0.7.35.md)。
@@ -120,7 +122,7 @@ npm 启动器会核对已安装 bundle 与 Harness 依赖的推荐版本组合�
 
 实验性 Desktop 组合包可向官方应用添加 DSCODE 预设、自定义模型与账户设置、浏览器预览、持久化会话通信、跨会话记忆及按需启用的任务调度。**Settings → DSCODE → Schedules** 可管理任务，并在 Desktop 保持运行时投递。构建及本地安装步骤见[浏览器操作](docs/browser-use.md#install-the-experimental-combined-desktop-package)。启用调度后的原生安装、升级、移除和重新安装，以及账户和调度界面的实际交互，已在 macOS Desktop 0.2.0-rc.2 上验证；验证边界见[触发器](docs/triggers.md#experimental-desktop-scheduling)。该包还包含实验性的[原生 Computer Use 接入](docs/computer-use.md)；窗口观察和输入操作仍待获得 macOS 辅助功能权限后验证。持久化的[时间上下文](docs/session-communication.md#time-context-for-delayed-work)会向 DSCODE agent 提供消息到达时间、转发等待时长和上一轮结束时间，普通聊天正文保持简洁。带独立命令前缀的 [Desktop 诊断](docs/tui-commands.md#experimental-desktop-diagnostics)可检查所选会话、技能与 Host MCP 条目，匹配版本的使用指南随包提供。[Desktop 邮件收件箱](docs/email.md#experimental-desktop-inbox)可预览共享本地邮件、连接 IMAP 或 Gmail OAuth，并将所选邮件加入 DSCODE 会话。背景同步需手动启用；发信沿用现有审批与回执规则。[Session usage 侧栏](docs/session-metrics.md#experimental-desktop-usage)展示 DSCODE 的费用、上下文、缓存、请求速度及逐回合估算。[Delegation board 侧栏](docs/tui-commands.md#experimental-desktop-delegation-board)展示所选主会话的任务、依赖、worktree 和验证依据。Desktop 插件与终端包分别分发；终端弹窗及终端专属命令继续使用现有界面。
 
-Desktop 插件使用 `@toddzheng024/dscode-desktop` 包名。0.7.35 移除捆绑的 [Plugin Hub](docs/plugin-hub.md) 界面、发现工具和运行依赖，DSCODE 仍在 Hub 目录中展示。适用于 Harness runtime 0.2.0-rc.2。在官方 **Plugins → Add plugin** 中输入 `@toddzheng024/dscode-desktop@0.7.36`，安装后选择 **Enable now**。更新后需完全退出并重新打开 Desktop。`preview` 和默认 `latest` 分发入口均更新到这个经过验证的预览版。
+Desktop 插件使用 `@toddzheng024/dscode-desktop` 包名。0.7.35 移除捆绑的 [Plugin Hub](docs/plugin-hub.md) 界面、发现工具和运行依赖，DSCODE 仍在 Hub 目录中展示。适用于 Harness runtime 0.2.0-rc.2。在官方 **Plugins → Add plugin** 中输入 `@toddzheng024/dscode-desktop@0.7.37`，安装后选择 **Enable now**。更新后需完全退出并重新打开 Desktop。`preview` 和默认 `latest` 分发入口均更新到这个经过验证的预览版。
 
 **Settings → DSCODE** 中的使用说明、Models、Accounts、Schedules 保持同级；**Plugins → DSCODE · Community** 打开相同页面。DSCODE 浏览器工具仅用于 DSCODE 会话。已有桌面模型和账户可直接在正常模型选择器中使用，额外提供方配置使用原生凭据存储。启用 **Show coding view** 和 **Agent presets**，完全重启后在新会话选择 DSCODE。
 
@@ -239,7 +241,7 @@ npm run dist                # 构建备用 tar 安装包
 | `@toddzheng024/dscode-bundle` | 基础层、Computer Use、自定义插件与修改后的 TUI/runtime |
 | Hub profile `dscode` | 固定 bundle/runtime 版本与完整性哈希 |
 
-Bundle 在构建阶段生成修改后的模块，不在使用者机器上改第三方源码。DSH 依赖统一固定到 `0.1.7-alpha.2`；TUI 基于 `dsh-code@1.2.0`，Computer Use 为 `0.3.2`。完整流程——先发布 bundle，再上线 Hub release，最后发布 launcher——见 [分发指南](docs/hub-distribution.md)。上下文压缩评测位于 [`eval/`](eval/README.md)，用 `npm run eval:compaction` 运行。
+Bundle 在构建阶段生成修改后的模块，不在使用者机器上改第三方源码。DSH 依赖统一固定到 `0.2.0-rc.2`；TUI 基于 `dsh-code@1.2.0`，Computer Use 为 `0.3.3`。完整流程——先发布 bundle，再上线 Hub release，最后发布 launcher——见 [分发指南](docs/hub-distribution.md)。上下文压缩评测位于 [`eval/`](eval/README.md)，用 `npm run eval:compaction` 运行。
 
 ## 📚 文档
 
@@ -261,7 +263,7 @@ Bundle 在构建阶段生成修改后的模块，不在使用者机器上改第�
 | [OpenCode Go](docs/opencode-go.md) | 用 OpenCode Go 订阅运行会话：账号登录、状态栏用量、模型及其推理强度、暂不支持的部分 |
 | [自定义模型服务](docs/custom-providers.md) | 接入自托管与私有 API：协议、模型发现、上下文窗口、密钥和工具调用测试 |
 | [Auto 审核](docs/auto-review.md) | 独立权限审核的范围、成本与限制 |
-| [邮件](docs/email.md) | IMAP 配置、收件箱面板、`send_email` 与联系人别名 |
+| [邮件](docs/email.md) | IMAP 配置、收件箱面板、`send_email`、联系人别名与可选 Atomic Mail MCP（启用前不加载上下文） |
 | [Skills 与工作区指令](docs/skills.md) | 发现范围、祖先模式与指令文件 |
 | [TUI 命令](docs/tui-commands.md) | 命令参考与 hooks |
 | [Session 指标](docs/session-metrics.md) | 底栏 TPS、context、费用与缓存的统计口径 |

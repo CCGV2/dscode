@@ -17,6 +17,79 @@ directory is `~/.dscode/email`; `DSCODE_EMAIL_DIR` overrides it. New directories
 use mode 0700 and messages use 0600. Message content enters session history only
 when selected with Enter. Existing composer drafts and attachments are preserved.
 
+## Atomic Mail via MCP
+
+[Atomic Mail](https://github.com/Atomic-Mail/atomic-mail-agentic) provides a
+separate mailbox for an agent through a local stdio MCP server. This optional
+integration uses DSCODE's existing MCP bridge; it does not populate the built-in
+`/email` inbox or use its `send_email` receipts and contact aliases.
+
+Atomic Mail is absent from the default preset and dependencies. Without a local
+MCP entry, no Atomic Mail process, tool schemas or server instructions load.
+The entry in [the example configuration](../config/mcp.local.example.yml) is
+disabled, so copying that file alone does not enable it. There is no always-on
+Atomic Mail skill or prompt section.
+
+### Enable the server
+
+For a source checkout or unpacked release, edit `config/mcp.local.yml` in the
+installation directory. For the npm/Hub launcher, edit
+`~/.local/share/dscode-hub/config/mcp.local.yml` (or
+`$DSCODE_HOME/config/mcp.local.yml` when overridden). Create the directory and
+file if needed. Add this row to the existing `insert` list, or use the complete
+patch below for a new file:
+
+```yaml
+- insert:
+    - id: mcp-atomicmail
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: atomicmail
+        transport: stdio
+        command: npx
+        args: ['--yes', '@atomicmail/mcp@0.3.31']
+        failOnStartupError: true
+```
+
+Node and `npx` must be available; the first enabled launch downloads the pinned
+package from npm. Restart DSCODE, then run `/mcp` and
+`/mcp tools mcp-atomicmail`. A successful connection exposes
+`mcp__atomicmail__register`, `mcp__atomicmail__jmap_request` and
+`mcp__atomicmail__help`, together with the server's own instructions.
+
+### Use and disable the mailbox
+
+Ask the agent to call Atomic Mail's `help` before using the mailbox. Registration
+requires your chosen username and a `watch` preference: `on-demand` reads mail
+when requested; `scheduled` requires a separately configured recurring agent
+task. Enabling the MCP entry does not register an account, send mail or create
+a schedule. Follow the installed server's help for registration and JMAP
+operations; the [upstream MCP guide](https://github.com/Atomic-Mail/atomic-mail-agentic/blob/main/docs/mcp.md)
+describes the service.
+
+Credentials default to `~/.atomicmail`; set `ATOMIC_MAIL_CREDENTIALS_DIR` in
+the row's `config.env` to use a separate absolute directory. Keep credentials
+out of the configuration and version control. Mail arriving through this MCP
+remains external content, and outgoing actions follow the active MCP tool
+permission policy.
+
+With all agents idle, `/mcp disable mcp-atomicmail` removes the connection,
+tools and server prompt contribution for the current process. Set
+`disabled: true` on the row, or remove it, to keep it off after restart.
+Disabling does not erase messages or tool results already in session history;
+start a new session for a conversation without that earlier context. Any
+separately configured schedule must also be disabled separately.
+
+The native bridge was checked with `@atomicmail/mcp@0.3.31` for initialization,
+discovery of all three tools, server instructions and a read-only `help` call
+using an isolated credential directory. An offline MCP fixture checks that
+absent and disabled entries contribute no context, enabling adds tools and
+instructions, and disabling or removing the entry removes both.
+
+This recipe covers the terminal launcher's local stdio integration. Hosted
+OAuth and integration with the built-in inbox are outside its scope. Mailbox
+registration and real mail delivery were not tested.
+
 ## Experimental Desktop inbox
 
 The combined Desktop package adds **Open right sidebar → Email inbox**. It reads

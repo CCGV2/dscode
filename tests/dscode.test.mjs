@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { patchDeepSeek, patchBash, patchPersistent, patchSubagent, patchSubagentCore, patchSubagentDriver, patchTerminalBash, patchAppBoot, patchMacStdinPackage, RUNTIME_VERSION } from '../scripts/patch-runtime.mjs';
+import { patchDeepSeek, patchBash, patchPersistent, patchSubagent, patchSubagentCore, patchSubagentDriver, patchTerminalBash, patchGoalCommand, patchAppBoot, patchMacStdinPackage, RUNTIME_VERSION } from '../scripts/patch-runtime.mjs';
 import { patchMacStdin, MAC_INSPECTOR_ANCHOR } from '../scripts/patch-mac-stdin.mjs';
 import { createTestRuntime } from '../scripts/test-runtime.mjs';
 import { pathToFileURL } from 'node:url';
@@ -37,7 +37,7 @@ test('ultra uses native max on the actual wire and adds policy only to agent cal
     return new Response(MESSAGES_SSE, { headers: { 'content-type': 'text/event-stream' } });
   };
   try {
-    const adapter = new DeepSeekAdapter({ options: () => resolveAdapterOptions({ models: [{ id: 'deepseek-fixture' }, { id: 'deepseek-flash' }] }), resolveApiKey: async () => 'fixture-not-a-key', resolveUserId: () => 'fixture', prepareExtensions: async () => ({ fields: {}, accept: async () => {} }), resolveFiles: () => ({}) });
+    const adapter = new DeepSeekAdapter({ options: () => resolveAdapterOptions({ models: [{ id: 'deepseek-fixture' }, { id: 'deepseek-flash' }] }), resolveAuth: async () => ({ headers: { Authorization: 'Bearer fixture-not-a-key' } }), resolveUserId: () => 'fixture', prepareExtensions: async () => ({ fields: {}, accept: async () => {} }), resolveFiles: () => ({}) });
     const meta = await adapter.resolveModel('deepseek-official', 'deepseek-fixture');
     assert(meta.reasoning.efforts.some(e => e.id === 'ultra'));
     for (const [effort, purpose] of [['ultra', undefined], ['max', undefined], ['ultra', 'compaction'], ['off', undefined]]) {
@@ -134,7 +134,7 @@ test('the macOS stdin inspector is patched, reported unchanged, or refused loudl
 });
 
 test('pinned runtime patches are idempotent and reject unknown upstream code', () => {
-  for (const [name, patch] of [['dsh-tool-subagent', patchSubagent], ['dsh-subagent', patchSubagentCore], ['dsh-subagent-in-process-driver', patchSubagentDriver], ['dsh-llm-deepseek', patchDeepSeek], ['dsh-tool-bash', patchBash], ['dsh-tool-bash-persistent', patchPersistent], ['dsh-terminal-bash', patchTerminalBash], ['dsh-app-boot', patchAppBoot]]) {
+  for (const [name, patch] of [['dsh-tool-subagent', patchSubagent], ['dsh-subagent', patchSubagentCore], ['dsh-subagent-in-process-driver', patchSubagentDriver], ['dsh-llm-deepseek', patchDeepSeek], ['dsh-tool-bash', patchBash], ['dsh-tool-bash-persistent', patchPersistent], ['dsh-terminal-bash', patchTerminalBash], ['dsh-command-goal', patchGoalCommand], ['dsh-app-boot', patchAppBoot]]) {
     const text = readFileSync(`${root}/node_modules/@deepseek-ai/${name}/lib/index.js`, 'utf8');
     assert.equal(patch(text), text);
     assert.throws(() => patch('unknown upstream'));

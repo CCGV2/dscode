@@ -54,14 +54,20 @@ test('a first model lookup waits for the listing, at most once per retry window,
   assert.notEqual(openRouterModel('deepseek/deepseek-v4-flash'), undefined, 'a restart reads the cached listing without the network');
   setOpenRouterModels({}, 0);
   rmSync(join(home, 'openrouter-models.json'));
-  const unreachable = () => new Promise((_, reject) => setTimeout(() => reject(new Error('unreachable')), 60));
-  let started = Date.now();
-  await ensureOpenRouterModels({ home, fetch: unreachable, timeoutMs: 20 });
-  assert(Date.now() - started < 50, 'an unreachable listing stops waiting at the timeout');
-  started = Date.now();
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let rejectListing, unreachableCalls = 0, settled = false;
+  const unreachable = () => { unreachableCalls++; return new Promise((_, reject) => { rejectListing = reject; }); };
+  const timed = ensureOpenRouterModels({ home, fetch: unreachable, timeoutMs: 20 }).then(() => { settled = true; });
+  t.mock.timers.tick(19);
+  await Promise.resolve();
+  assert.equal(settled, false, 'the first lookup waits for the configured timeout');
+  t.mock.timers.tick(1);
+  await timed;
+  assert.equal(settled, true, 'an unreachable listing stops waiting at the timeout');
   await ensureOpenRouterModels({ home, fetch: unreachable, timeoutMs: 5000 });
-  assert(Date.now() - started < 50, 'and does not stall the next lookup in the same retry window');
-  await new Promise(resolve => setTimeout(resolve, 80));
+  assert.equal(unreachableCalls, 1, 'the next lookup reuses the retry window without another wait');
+  rejectListing(new Error('unreachable'));
+  await new Promise(resolve => setImmediate(resolve));
 });
 
 test('each model offers its own effort levels, DeepSeek V4 keeps the official detents, and Ultra rides on max', () => {

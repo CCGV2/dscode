@@ -7,7 +7,7 @@
 - `@toddzheng024/dscode-desktop`: the extension for official Harness Desktop, published under the npm `preview` tag. It has its own exact runtime compatibility and Hub listing, and is not part of the terminal Hub profile.
 - Hub profile `dscode`: the exact versions and integrity hashes of the bundle and the DSH runtime.
 
-The complete bundle pins the shared DSH dependencies and the vendored terminal's runtime dependencies explicitly, using the repository lockfile. The terminal's workspace package is compiled into the bundle; its dependencies must still be installed, including `chalk` and `ink`. Do not stack it with another base/TUI bundle in one profile: installing several root bundles in Hub order resolves a wide transitive dependency to the other rc line first. A standalone profile's pnpm hoisted + autoInstallPeers=false is the verified installation path. A direct `npm install` of the bundle hits Computer Use's old peer range; end users install through the launcher.
+The complete bundle pins the shared DSH dependencies and the vendored terminal's runtime dependencies explicitly, using the repository lockfile. The terminal's workspace package is compiled into the bundle; its dependencies must still be installed, including `chalk` and `ink`. Do not stack it with another base/TUI bundle in one profile: installing several root bundles in Hub order resolves a wide transitive dependency to the other rc line first. A standalone profile's pnpm hoisted + autoInstallPeers=false is the verified installation path. Computer Use 0.3.3 declares compatibility with the pinned Harness runtime. End users install through the launcher, which supplies the verified profile layout and installation settings.
 
 ## User
 
@@ -37,7 +37,7 @@ A user who already has dsh-hub installed can apply directly, but must use pnpm 1
 
 Install the official Harness Desktop application with embedded runtime
 0.2.0-rc.2. In **Plugins → Add plugin**, enter
-`@toddzheng024/dscode-desktop@0.7.35`, review and install, then choose
+`@toddzheng024/dscode-desktop@0.7.37`, review and install, then choose
 **Enable now**. Fully quit and reopen Desktop, enable **Show coding view** and
 **Agent presets**, then create a DSCODE session and choose an existing model.
 The Desktop preview is qualified on macOS Apple Silicon. See
@@ -46,7 +46,7 @@ for archive checksums, migration and removal, and [Plugin Hub](plugin-hub.md)
 for the separation between DSCODE and Hub.
 
 Version 0.7.34 fixes the 0.7.33 activation error “4 entries did not activate”
-when Desktop starts without `DSH_HOME`. Update to the current 0.7.35 package and
+when Desktop starts without `DSH_HOME`. Update to the current 0.7.37 package and
 enable it again; exporting a shell variable is unnecessary. Default Desktop
 state uses `~/.dsh`, as resolved by Harness. Publication now verifies installation
 and the affected components with that default environment.

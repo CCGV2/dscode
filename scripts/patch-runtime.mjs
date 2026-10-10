@@ -180,7 +180,7 @@ export function patchAppBoot(text) {
  * package cannot carry its own copy of that package.
  */
 /** The upstream DSH release every runtime patch in this file was validated against. */
-export const RUNTIME_VERSION = '0.1.7-alpha.2';
+export const RUNTIME_VERSION = '0.2.0-rc.2';
 
 /**
  * dscode: the round cap is a goal field the model-facing tools can set, and the

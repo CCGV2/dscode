@@ -592,6 +592,8 @@ export interface AppProps {
   loadPlugins: () => readonly PluginRow[]
   /** Caller-visible background jobs (the host jobs registry, read-only). */
   loadJobs: () => readonly JobRow[]
+  /** Read active reminders from the native durable scheduler. */
+  loadSchedules: () => Promise<readonly import('./render/projection.ts').ScheduleRow[]>
   /** Probe the launcher's aligned update plan (read-only; never installs). */
   probeUpdate: () => Promise<LauncherUpdateStatus>
   /** Run the launcher's aligned update; streams sanitized lines; resolves with the exit code. */
@@ -7688,7 +7690,7 @@ export function App(props: AppProps): ReactElement {
       })
       : undefined,
     scheduleOpen && !approvalPending && !questionPending
-      ? createElement(SchedulePanel, { rows: () => view.schedules, close: () => setScheduleOpen(false) })
+      ? createElement(SchedulePanel, { key: props.sessionId, loadRows: props.loadSchedules, close: () => setScheduleOpen(false) })
       : undefined,
     delegateOpen && !approvalPending && !questionPending
       ? createElement(DelegateDashboardPanel, { load: () => props.sessionKey ? dscodeDelegateBoardFor(props.sessionKey) : undefined, close: () => setDelegateOpen(false) })

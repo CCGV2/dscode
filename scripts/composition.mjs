@@ -8,7 +8,7 @@ export const customPlugins = Object.freeze([
 /**
  * Computer Use configuration. It lives here rather than in the host overlay because the
  * upstream row is disabled and DSCODE mounts the bundle through its own wrapper, which
- * restores the settings API the pinned 0.3.2 package still calls.
+ * keeps the stable DSCODE row id while upstream owns configuration and live updates.
  */
 const COMPUTER_USE_CONFIG = Object.freeze({
   observationTtlMs: 30000,
