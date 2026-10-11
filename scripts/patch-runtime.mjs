@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { replaceOnce } from './patch-util.mjs';
+import { patchAcpErrors, patchDeepSeekErrors } from './patch-acp-errors.mjs';
 import { patchMacStdin } from './patch-mac-stdin.mjs';
 import { patchStdinStall } from './patch-stdin-stall.mjs';
 import { patchShellCapture, patchTerminalCapture } from './patch-shell-capture.mjs';
@@ -21,7 +22,7 @@ export function patchDeepSeek(text) {
   if (text.startsWith(marker)) {
     const start = text.indexOf('\nimport ');
     if (start < 0) throw new Error('Malformed patched DeepSeek module');
-    return prefix + text.slice(start + 1);
+    return patchDeepSeekErrors(prefix + text.slice(start + 1));
   }
   // The selector reads the adapter's advertised efforts, and dsh-llm rejects an
   // effort absent from that list, so Ultra is announced ahead of DeepSeek's own.
@@ -40,7 +41,7 @@ export function patchDeepSeek(text) {
   );
   // Delegation tools are offered at every effort; workflow and ralph never are.
   text = replaceOnce(text, '{ tools: options.tools.map((tool) => ({', '{ tools: options.tools.filter((tool) => tool.name !== "workflow" && tool.name !== "ralph").map((tool) => ({');
-  return prefix + text;
+  return patchDeepSeekErrors(prefix + text);
 }
 export function patchBash(text) {
   text = text.replace('text: "Check the [exit code: N] marker on every bash result; investigate failures before moving on."', 'text: `Check the [exit code: N] marker on every ${config.toolName} result; investigate failures before moving on.`');
@@ -211,7 +212,7 @@ export function patchGoalCommand(text) {
 }
 
 export function patchRuntime(root, { requireMacStdin = true } = {}) {
-  for (const [pkg, patch] of [['dsh-tool-subagent', patchSubagent], ['dsh-subagent', patchSubagentCore], ['dsh-subagent-in-process-driver', patchSubagentDriver], ['dsh-llm-deepseek', patchDeepSeek], ['dsh-tool-bash', patchBash], ['dsh-tool-bash-persistent', patchPersistent], ['dsh-terminal-bash', patchTerminalBash], ['dsh-command-goal', patchGoalCommand]]) {
+  for (const [pkg, patch] of [['dsh-acp', patchAcpErrors], ['dsh-tool-subagent', patchSubagent], ['dsh-subagent', patchSubagentCore], ['dsh-subagent-in-process-driver', patchSubagentDriver], ['dsh-llm-deepseek', patchDeepSeek], ['dsh-tool-bash', patchBash], ['dsh-tool-bash-persistent', patchPersistent], ['dsh-terminal-bash', patchTerminalBash], ['dsh-command-goal', patchGoalCommand]]) {
     const dir = join(root, 'node_modules/@deepseek-ai', pkg);
     if (JSON.parse(readFileSync(join(dir, 'package.json'))).version !== RUNTIME_VERSION) throw new Error('Revalidate runtime patches before upgrading ' + pkg);
     const path = join(dir, 'lib/index.js');

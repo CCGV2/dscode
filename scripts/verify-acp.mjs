@@ -8,7 +8,12 @@ import { createInterface } from 'node:readline';
 const root = resolve(import.meta.dirname, '..');
 const home = mkdtempSync(join(tmpdir(), 'dscode-acp-verify-'));
 const fixture = join(home, 'fixture.yml');
-writeFileSync(join(home, 'providers.yaml'), JSON.stringify({ version: 1, providers: [{ id: 'custom-acp', name: 'ACP fixture', baseURL: 'http://unused.invalid/v1', api: 'chat-completions', auth: 'none', models: [{ id: 'llama', contextWindow: 1000000, maxTokens: 4096 }] }] }));
+const providers = ['custom-acp', 'custom-acp-keyed', 'custom-acp-missing'].map(id => ({
+  id, name: id, baseURL: 'http://unused.invalid/v1', api: 'chat-completions', auth: id === 'custom-acp' ? 'none' : 'bearer',
+  models: ['llama', 'llama-alt'].map(id => ({ id, contextWindow: 1000000, maxTokens: 4096 })),
+}));
+const saveProviders = () => writeFileSync(join(home, 'providers.yaml'), JSON.stringify({ version: 1, providers }));
+saveProviders();
 writeFileSync(fixture, `- insert:\n    - id: acp-fixture\n      name: ${JSON.stringify(join(root, 'tests/fixtures/acp-runtime.mjs'))}\n- id: dscode-custom\n  config:\n    path: ${JSON.stringify(join(home, 'providers.yaml'))}\n`);
 const launcher = process.env.DSCODE_ACP_VERIFY_LAUNCHER;
 if (launcher) {
@@ -48,7 +53,7 @@ createInterface({ input: child.stdout }).on('line', line => {
   else {
     const waiter = pending.get(message.id);
     pending.delete(message.id);
-    if (message.error) waiter?.reject(Error(`${waiter.method}: ${JSON.stringify(message.error)}; ${stderr}`));
+    if (message.error) waiter?.reject(Object.assign(Error(`${waiter.method}: ${JSON.stringify(message.error)}; ${stderr}`), { rpcError: message.error }));
     else waiter?.resolve(message.result);
   }
 });
@@ -61,11 +66,21 @@ const timeout = setTimeout(() => {
   for (const waiter of pending.values()) waiter.reject(Error(`ACP timeout during ${waiter.method}: ${stderr}; non-protocol stdout: ${protocolFailure ?? 'none'}`));
   child.kill('SIGTERM');
 }, 60000);
+const modelOptions = result => result.configOptions.find(option => option.id === 'model');
+const verifyModels = result => {
+  const model = modelOptions(result);
+  assert(model.options.some(group => group.group === 'custom-acp' && group.options.length === 2));
+  assert(model.options.some(group => group.group === 'custom-acp-keyed' && group.options.length === 2));
+  assert(!model.options.some(group => group.group === 'custom-acp-missing'), 'unconfigured custom providers must not be advertised');
+};
 try {
   const initialized = await request('initialize', { protocolVersion: 1, clientCapabilities: {}, clientInfo: { name: 'dscode-test', version: '1' } });
   assert.equal(initialized.protocolVersion, 1);
   const session = await request('session/new', { cwd: root, mcpServers: [] });
   assert(session.sessionId);
+  verifyModels(session);
+  await assert.rejects(request('session/set_config_option', { sessionId: session.sessionId, configId: 'model', value: JSON.stringify(['custom-acp-missing', 'llama']) }), /unknown model/);
+  verifyModels(await request('session/set_config_option', { sessionId: session.sessionId, configId: 'model', value: JSON.stringify(['custom-acp', 'llama']) }));
   const result = await request('session/prompt', { sessionId: session.sessionId, prompt: [{ type: 'text', text: 'USE_TOOL then answer' }] });
   assert.equal(result.stopReason, 'end_turn');
   assert(updates.some(m => m.params?.update?.sessionUpdate === 'tool_call'), JSON.stringify(updates));
@@ -80,16 +95,48 @@ try {
   cancelId = cancelSession.sessionId;
   const cancelled = await request('session/prompt', { sessionId: cancelSession.sessionId, prompt: [{ type: 'text', text: 'WAIT_ABORT' }] });
   assert.equal(cancelled.stopReason, 'cancelled');
+  assert(!updates.some(m => m.params?.sessionId === cancelSession.sessionId && m.params?.update?._meta?.['dscode.dev/status'] === 'error'), 'cancellation must not be presented as a failure');
   await request('session/close', { sessionId: cancelSession.sessionId });
+  approvalChoice = 'allow-once';
+  const failed = await request('session/new', { cwd: root, mcpServers: [] });
+  await assert.rejects(request('session/prompt', { sessionId: failed.sessionId, prompt: [{ type: 'text', text: 'USE_TOOL FAIL_AFTER_TOOL' }] }), error => {
+    assert.equal(error.rpcError?.code, -32603);
+    assert.equal(error.rpcError?.data?.code, 'TRANSPORT');
+    assert.equal(error.rpcError?.data?.sessionId, failed.sessionId);
+    assert.match(error.rpcError?.data?.message, /retry/i);
+    assert.doesNotMatch(JSON.stringify(error.rpcError), /fake-token/);
+    const notices = updates.filter(m => m.params?.sessionId === failed.sessionId && m.params?.update?._meta?.['dscode.dev/status'] === 'error');
+    assert.equal(notices.length, 1, 'one visible failure notice must arrive before the prompt error response');
+    assert.match(notices[0].params.update.content.text, /DSCODE — Request failed \(TRANSPORT\)/);
+    return true;
+  });
+  await request('session/close', { sessionId: failed.sessionId });
   await request('session/close', { sessionId: session.sessionId });
   const listed = await request('session/list', {});
   assert(listed.sessions.some(s => s.sessionId === session.sessionId));
-  await request('session/resume', { sessionId: session.sessionId, cwd: root, mcpServers: [] });
+  verifyModels(await request('session/resume', { sessionId: session.sessionId, cwd: root, mcpServers: [] }));
+  const updateCount = updates.length;
+  providers[0].auth = 'bearer';
+  saveProviders();
+  // The custom provider watcher emits a native ACP config update. Retain only
+  // the current model when this route loses its configured authentication.
+  const deadline = Date.now() + 10000;
+  let changed;
+  while (Date.now() < deadline && !changed) {
+    changed = updates.slice(updateCount).find(message => {
+      const update = message.params?.update;
+      return update?.sessionUpdate === 'config_option_update'
+        && modelOptions(update).options.find(group => group.group === 'custom-acp')?.options.length === 1;
+    });
+    if (!changed) await new Promise(resolve => setTimeout(resolve, 50));
+  }
+  assert(changed, 'provider changes must refresh ACP options while retaining the current model');
+  assert.equal(modelOptions(changed.params.update).currentValue, JSON.stringify(['custom-acp', 'llama']));
   await request('session/close', { sessionId: session.sessionId });
   child.stdin.end();
   assert.equal(await exited, 0, stderr);
   assert.equal(protocolFailure, undefined);
-  console.log(`ACP_PROBE_PASSED: handshake, custom API, DSCODE tool call, allow/reject, cancellation, reply, list, resume, close and EOF; ${approvals.length} permission requests`);
+  console.log(`ACP_PROBE_PASSED: configured model filtering, selection, current-model retention, handshake, custom API, DSCODE tool call, allow/reject, cancellation, failure notice and error response, reply, list, resume, close and EOF; ${approvals.length} permission requests`);
 } finally {
   clearTimeout(timeout);
   if (child.exitCode === null) child.kill('SIGTERM');

@@ -1,5 +1,6 @@
 import { apply as applyAcp } from '@deepseek-ai/dsh-acp';
 import z from '@deepseek-ai/schemastery';
+import { configuredModels } from './models.mjs';
 
 export const name = 'dscode-acp';
 export const inject = ['acpAppStartup', 'agents', 'agentPresets', 'agentDefaultModel', 'permissionPresets', 'llm', 'sessionPersistence', 'sessions', 'dscodeCustom'];
@@ -34,7 +35,7 @@ export function startAcp(ctx, config = {}, bridge = applyAcp) {
   const selection = config.model
     ? { provider: config.model.slice(0, config.model.indexOf('/')), model: config.model.slice(config.model.indexOf('/') + 1) }
     : ctx.agentDefaultModel.currentSelection();
-  const scoped = ctx.extend({ agents: presetAgents(ctx) });
+  const scoped = ctx.extend({ agents: presetAgents(ctx), llm: configuredModels(ctx) });
   bridge(scoped, { provider: selection.provider, model: selection.model });
 }
 

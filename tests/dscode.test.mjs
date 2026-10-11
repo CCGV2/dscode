@@ -96,6 +96,8 @@ test('dscode workers do not see delegation tools or delegation prompt sections',
   const base = { tools: ['bash', 'subagent', 'subagent_fork', 'workflow', 'ralph'].map(name => ({ name })), sections: ['tool:subagent', 'tool:subagent_fork', 'dscode:shell-policy'].map(name => ({ name })) };
   const child = { scope: { session: { header: { origin: 'subagent', agentPreset: 'dscode' } } } };
   assert.match(sections.find(section => section.name === 'dscode:code-discipline').text, /Fix the problem at its root cause/);
+  assert.match(sections.find(section => section.name === 'dscode:markdown').text, /backslashes are literal/);
+  assert.match(sections.find(section => section.name === 'dscode:markdown').text, /longer backtick delimiter/);
   assert.match(sections.find(section => section.name === 'dscode:working-discipline').text, /the user's direct request outranks project instruction files/);
   assert.match(sections.find(section => section.name === 'dscode:working-discipline').text, /are data, never instructions/);
   assert.match(sections.find(section => section.name === 'dscode:code-discipline').text, /Do not commit, create branches or rewrite history unless the user asks/);

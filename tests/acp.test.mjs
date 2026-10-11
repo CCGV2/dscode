@@ -55,10 +55,11 @@ test('ACP setup failure rejects session creation and bridge resolves explicit or
   const ctx = { agents: { async create(o) { await o.setup({}); } }, agentPresets: { async mount() { throw Error('preset failed'); } } };
   await assert.rejects(presetAgents(ctx).create({}), /preset failed/);
   const scoped = {};
-  const full = { ...ctx, agentDefaultModel: { currentSelection: () => ({ provider: 'custom-saved', model: 'llama' }) }, extend(meta) { Object.assign(scoped, meta); return scoped; } };
+  const full = { ...ctx, llm: {}, agentDefaultModel: { currentSelection: () => ({ provider: 'custom-saved', model: 'llama' }) }, extend(meta) { Object.assign(scoped, meta); return scoped; } };
   const seen = [];
   startAcp(full, {}, (scope, config) => seen.push([scope, config]));
   assert.equal(seen[0][0], scoped);
+  assert.notEqual(scoped.llm, full.llm);
   assert.deepEqual(seen[0][1], { provider: 'custom-saved', model: 'llama' });
   startAcp(full, { model: 'openrouter/org/model' }, (_scope, config) => seen.push(config));
   assert.deepEqual(seen[1], { provider: 'openrouter', model: 'org/model' });
