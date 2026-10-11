@@ -6,6 +6,17 @@ Per-release notes live in [`docs/releases/`](releases/); the entries below summa
 
 <!-- Add upcoming changes under Unreleased. -->
 
+## [Unreleased]
+
+### Fixed
+
+- Send a labeled ACP failure notice before the failed prompt response, with bounded error data and retry guidance. Preserve cancellation and normal completion semantics. Include recognized network error codes and elapsed time in DeepSeek transport summaries without copying raw error causes.
+- Guide model output to use correct Markdown delimiters for code containing backticks and literal backslashes, and concise labels for long file links. This guidance does not rewrite generated code or guarantee that every model response is valid Markdown.
+
+### Changed
+
+- Filter ACP model choices to providers with configured credentials or account login and saved custom services with no authentication. Retain the current model when credentials are missing, preserve exact routing and the TUI catalog, and check the Harness 0.2 DeepSeek account and API-key routes separately. This checks local configuration, not endpoint reachability, key validity or per-model access; reconnect after credential changes to refresh the picker.
+
 ## [0.7.39] - 2026-10-10
 
 ### Fixed

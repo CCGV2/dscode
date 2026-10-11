@@ -32,6 +32,7 @@ const runtimeDependencies = new Set([
   ...Object.keys(original.dependencies).filter(pkg => pkg !== tuiMeta.name),
   ...Object.keys(tuiMeta.dependencies),
   'eventsource-parser',
+  '@agentclientprotocol/sdk',
 ]);
 for (const pkg of runtimeDependencies) {
   const version = lock.packages['node_modules/' + pkg]?.version;
@@ -49,19 +50,20 @@ mkdirSync(join(bundle, 'vendor'));
 // Patch only our staging copies, never the developer or recipient install.
 const stage = join(out, '.vendor-stage');
 rmSync(stage, { recursive: true, force: true }); mkdirSync(join(stage, 'node_modules'), { recursive: true });
-for (const pkg of ['@deepseek-ai/dsh-tool-subagent', '@deepseek-ai/dsh-subagent', '@deepseek-ai/dsh-subagent-in-process-driver', '@deepseek-ai/dsh-subagent-spawn-in-process', '@deepseek-ai/dsh-subagent-fork-in-process', '@deepseek-ai/dsh-llm-deepseek', '@deepseek-ai/dsh-llm-deepseek-api-key', '@deepseek-ai/dsh-llm-deepseek-account', '@deepseek-ai/dsh-tool-bash', '@deepseek-ai/dsh-tool-bash-persistent', '@deepseek-ai/dsh-terminal-bash', '@deepseek-ai/dsh-command-goal']) {
+for (const pkg of ['@deepseek-ai/dsh-acp', '@deepseek-ai/dsh-tool-subagent', '@deepseek-ai/dsh-subagent', '@deepseek-ai/dsh-subagent-in-process-driver', '@deepseek-ai/dsh-subagent-spawn-in-process', '@deepseek-ai/dsh-subagent-fork-in-process', '@deepseek-ai/dsh-llm-deepseek', '@deepseek-ai/dsh-llm-deepseek-api-key', '@deepseek-ai/dsh-llm-deepseek-account', '@deepseek-ai/dsh-tool-bash', '@deepseek-ai/dsh-tool-bash-persistent', '@deepseek-ai/dsh-terminal-bash', '@deepseek-ai/dsh-command-goal']) {
   copy('node_modules/' + pkg, join(stage, 'node_modules', pkg));
 }
 patchRuntime(stage, { requireMacStdin: false });
 const notices = [];
-for (const [pkg, dest] of [['@deepseek-ai/dsh-tool-subagent','subagent'], ['@deepseek-ai/dsh-subagent','subagent-core'], ['@deepseek-ai/dsh-subagent-in-process-driver','subagent-driver'], ['@deepseek-ai/dsh-subagent-spawn-in-process','subagent-spawn'], ['@deepseek-ai/dsh-subagent-fork-in-process','subagent-fork'], ['@deepseek-ai/dsh-llm-deepseek','deepseek'], ['@deepseek-ai/dsh-llm-deepseek-api-key','deepseek-api-key'], ['@deepseek-ai/dsh-llm-deepseek-account','deepseek-account'], ['@deepseek-ai/dsh-tool-bash','bash'], ['@deepseek-ai/dsh-tool-bash-persistent','persistent'], ['@deepseek-ai/dsh-terminal-bash','terminal'], ['@deepseek-ai/dsh-command-goal','command-goal']]) {
+for (const [pkg, dest] of [['@deepseek-ai/dsh-acp','acp'], ['@deepseek-ai/dsh-tool-subagent','subagent'], ['@deepseek-ai/dsh-subagent','subagent-core'], ['@deepseek-ai/dsh-subagent-in-process-driver','subagent-driver'], ['@deepseek-ai/dsh-subagent-spawn-in-process','subagent-spawn'], ['@deepseek-ai/dsh-subagent-fork-in-process','subagent-fork'], ['@deepseek-ai/dsh-llm-deepseek','deepseek'], ['@deepseek-ai/dsh-llm-deepseek-api-key','deepseek-api-key'], ['@deepseek-ai/dsh-llm-deepseek-account','deepseek-account'], ['@deepseek-ai/dsh-tool-bash','bash'], ['@deepseek-ai/dsh-tool-bash-persistent','persistent'], ['@deepseek-ai/dsh-terminal-bash','terminal'], ['@deepseek-ai/dsh-command-goal','command-goal']]) {
   const src = join(stage, 'node_modules', pkg);
   cpSync(join(src, 'lib'), join(bundle, 'vendor', dest), { recursive: true });
   const meta = JSON.parse(readFileSync(join(src, 'package.json'), 'utf8'));
-  notices.push(`${pkg}@${meta.version}: ${meta.license}; ${JSON.stringify(meta.repository)}\nLocal changes: DSCODE effort, shell control, TUI commands and footer.\n`);
+  notices.push(`${pkg}@${meta.version}: ${meta.license}; ${JSON.stringify(meta.repository)}\nLocal changes: DSCODE effort, shell control, TUI commands and footer, ACP failure feedback and bounded transport diagnostics.\n`);
   const license = readdirSync(src).find(f => /^licen[cs]e(?:\.|$)/i.test(f));
   if (license) cpSync(join(src, license), join(bundle, 'vendor', dest, 'LICENSE'));
 }
+write(bundle, 'plugins/acp/index.mjs', read('plugins/acp/index.mjs').replace("from '@deepseek-ai/dsh-acp'", "from '../../vendor/acp/index.js'"));
 // The vendored terminal ships compiled: an installed package lives under node_modules,
 // where Node refuses to strip types, so packages/tui/lib is what gets loaded. The source
 // tree keeps relative "../../../plugins/..." imports, which resolve identically here

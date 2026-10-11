@@ -21,6 +21,7 @@ Delegation to child agents (subagent, subagent_fork) is available at every effor
 // unrequested commits, invented test suites). Kept separate from the persona so
 // it stays one reviewable unit and does not lengthen the deployment block.
 export const CODE_DISCIPLINE = `Code discipline. Fix the problem at its root cause rather than with a surface patch, and keep the change inside the requested scope: do not fix unrelated bugs or failing tests, do not reformat or rename what the task did not ask for, and mention adjacent problems instead of taking them on. Match the surrounding code's style, naming and comment density; do not add inline comments, license or copyright headers unless the task or the neighbouring code requires it. Do not commit, create branches or rewrite history unless the user asks. Do not introduce a test suite to a repository that has none; where tests exist, extend the nearest relevant pattern. When the repository's own history would settle a question, read it with git log or git blame before guessing.`;
+export const MARKDOWN_POLICY = 'Markdown output. Inside a code span, backslashes are literal and cannot escape a backtick. Wrap code containing backticks in a longer backtick delimiter (for example, two backticks around a template literal containing single backticks); add one padding space at both ends when the content starts or ends with a backtick. Use a fenced code block for multiline code, with a fence longer than any matching run inside it. Preserve literal backslashes and code text. Keep prose and punctuation outside code spans. For long file paths in explanations, prefer a short filename label with the full path as the link target instead of repeating the full path inline.';
 
 // Claude-Code-derived working discipline: instruction precedence, acting instead
 // of re-deriving, and correction economy. The memory and session sections already
@@ -65,6 +66,7 @@ export function apply(ctx, config = {}) {
   ctx.systemPrompt.section({ name: 'dscode:shell-policy', order: 1050, text: SHELL_POLICY });
   ctx.systemPrompt.section({ name: 'dscode:docs', order: 1052, text: DOCS_SECTION });
   ctx.systemPrompt.section({ name: 'dscode:code-discipline', order: 1053, text: CODE_DISCIPLINE });
+  ctx.systemPrompt.section({ name: 'dscode:markdown', order: 1054, text: MARKDOWN_POLICY });
   ctx.systemPrompt.section({ name: 'dscode:working-discipline', order: 1054, text: WORKING_DISCIPLINE });
   ctx.systemPrompt.section({ name: 'dscode:child-policy', order: 1051, text: ({ scope }) => scope?.session?.header?.origin === 'subagent' && scope.session.header.agentPreset === 'dscode'
     ? 'You are a delegated worker. Complete your assigned task yourself and return a concise result to the parent. You cannot start or wake another agent; ask the parent to make any new delegation decision. Your parent is addressed as / in send_message.' : '' });
